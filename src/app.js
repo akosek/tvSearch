@@ -1,4 +1,5 @@
 import { mapListToDOMElements } from "./DOMActions.js";
+import { getShowsByKey } from "./apiService.js";
 
 class TvSearch {
   constructor() {
@@ -11,6 +12,7 @@ class TvSearch {
   initializeApp = () => {
     this.connectHTMLElems();
     this.setupListeners();
+    this.fetchData();
   };
 
   connectHTMLElems = () => {
@@ -29,9 +31,6 @@ class TvSearch {
       listOfShowName,
       "data-show-name"
     );
-
-    console.log(this.viewElems);
-    console.log(this.showNameButtons);
   };
 
   setupListeners = () => {
@@ -45,6 +44,14 @@ class TvSearch {
 
   setCurrentNameFilter = () => {
     this.selectedName = event.target.dataset.showName;
+    console.log("selected name", this.selectedName);
+    this.fetchData();
+  };
+
+  fetchData = () => {
+    getShowsByKey(this.selectedName).then((shows) => {
+      console.log("Found Show", shows);
+    });
   };
 }
 

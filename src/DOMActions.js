@@ -1,5 +1,5 @@
 const _getDOMElem = (attribute, value) => {
-  return document.querySelectorAll(`[${attribute}="${value}"]`);
+  return document.querySelector(`[${attribute}="${value}"]`);
 };
 
 export const mapListToDOMElements = (listOfValues, attribute) => {
