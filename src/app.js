@@ -1,4 +1,4 @@
-import { mapListToDOMElements } from "./DOMActions.js";
+import { mapListToDOMElements, createDOMElement } from "./DOMActions.js";
 import { getShowsByKey } from "./apiService.js";
 
 class TvSearch {
@@ -50,8 +50,36 @@ class TvSearch {
 
   fetchData = () => {
     getShowsByKey(this.selectedName).then((shows) => {
-      console.log("Found Show", shows);
+      this.renderCards(shows);
     });
+  };
+
+  renderCards = (shows) => {
+    for (const { show } of shows) {
+      this.createShowCard(show);
+    }
+  };
+
+  createShowCard = (show) => {
+    const divCard = createDOMElement("div", "card");
+    const img = createDOMElement(
+      "img",
+      "card-img-top",
+      null,
+      show.image.medium
+    );
+    const divCardBody = createDOMElement("div", "card-body");
+    const h5 = createDOMElement("h5", "card-title", show.name);
+    const p = createDOMElement("p", "card-text", show.summary);
+    const btn = createDOMElement("button", "btn btn-primary", "Show Details");
+
+    divCard.appendChild(divCardBody);
+    divCardBody.appendChild(img);
+    divCardBody.appendChild(h5);
+    divCardBody.appendChild(p);
+    divCardBody.appendChild(btn);
+
+    this.viewElems.showsWrapper.appendChild(divCard);
   };
 }
 
