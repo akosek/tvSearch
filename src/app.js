@@ -1,5 +1,5 @@
 import { mapListToDOMElements, createDOMElement } from "./DOMActions.js";
-import { getShowsByKey } from "./apiService.js";
+import { getShowsByKey, getShowById } from "./apiService.js";
 
 class TvSearch {
   constructor() {
@@ -50,29 +50,58 @@ class TvSearch {
 
   fetchData = () => {
     getShowsByKey(this.selectedName).then((shows) => {
-      this.renderCards(shows);
+      this.renderCardsList(shows);
     });
   };
 
-  renderCards = (shows) => {
+  renderCardsList = (shows) => {
+    Array.from(document.querySelectorAll("[data-show-id]")).forEach((btn) =>
+      btn.removeEventListener("click", this.openDetailView)
+    );
     this.viewElems.showsWrapper.innerHTML = "";
     for (const { show } of shows) {
-      this.createShowCard(show);
+      const card = this.createShowCard(show);
+      this.viewElems.showsWrapper.appendChild(card);
     }
   };
 
-  createShowCard = (show) => {
-    let img;
-    let p;
+  openDetailView = (event) => {
+    const { showId } = event.target.dataset;
+    console.log(showId);
+    getShowById(showId).then((show) => {
+      const card = this.createShowCard(show, true);
+      this.viewElems.showPreview.appendChild(card);
+      this.viewElems.showPreview.style.display = "block";
+      console.log(show);
+    });
+  };
+
+  closeDetailView = (event) => {
+    const { showId } = event.target.dataset;
+    const closeBtn = document.querySelector(
+      `[id="showPreview"] [data-show-id="${showId}]"`
+    );
+
+    this.viewElems.showPreview.style.display = "none";
+    this.viewElems.showPreview.innerHTML = "";
+    closeBtn.removeEventListener("click", this.closeDetailView);
+  };
+
+  createShowCard = (show, isDetailed) => {
+    let img, p;
     const divCard = createDOMElement("div", "card");
 
     const divCardBody = createDOMElement("div", "card-body");
     const h5 = createDOMElement("h5", "card-title", show.name);
-
     const btn = createDOMElement("button", "btn btn-primary", "Show Details");
 
     if (show.image) {
-      img = createDOMElement("img", "card-img-top", null, show.image?.medium);
+      if (isDetailed) {
+        img = createDOMElement("div", "card-preview-bg");
+        img.style.backgroundImage = `url('${show.image?.original}')`;
+      } else {
+        img = createDOMElement("img", "card-img-top", null, show.image?.medium);
+      }
     } else {
       img = createDOMElement(
         "img",
@@ -83,11 +112,15 @@ class TvSearch {
     }
 
     if (show.summary) {
-      p = createDOMElement(
-        "p",
-        "card-text",
-        `${show.summary.slice(0, 100)}...`
-      );
+      if (isDetailed) {
+        p = createDOMElement("p", "card-text", show.summary);
+      } else {
+        p = createDOMElement(
+          "p",
+          "card-text",
+          `${show.summary.slice(0, 100)}...`
+        );
+      }
     } else {
       p = createDOMElement(
         "p",
@@ -96,13 +129,21 @@ class TvSearch {
       );
     }
 
+    btn.dataset.showId = show.id;
+
+    if (isDetailed) {
+      btn.addEventListener("click", this.closeDetailView);
+    } else {
+      btn.addEventListener("click", this.openDetailView);
+    }
+
     divCard.appendChild(divCardBody);
     divCardBody.appendChild(img);
     divCardBody.appendChild(h5);
     divCardBody.appendChild(p);
     divCardBody.appendChild(btn);
 
-    this.viewElems.showsWrapper.appendChild(divCard);
+    return divCard;
   };
 }
 
